@@ -50,7 +50,7 @@ cities1 = np.array([[300, 0],
 print(np.shape(cities1))
 
 # 2-opt algo #                 
-COUNT_MAX = 5000
+COUNT_MAX = 500
 
 
 # (nicht mehr verwendet) Da die Eingabedaten, die Sie selbst erstellen, der beste Weg sein können, 
