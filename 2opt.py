@@ -61,13 +61,13 @@ def cut_cities(cities):
     for i in range(len(allcity)):
         if allcity[i][1] < (-1.6) * allcity[i][0]:
             cities1 = np.append(cities1, [allcity[i]], axis=0)
-        if allcity[i][1] < (1.6) * allcity[i][0]:
+        if allcity[i][1] < 1.6 * allcity[i][0]:
             cities5 = np.append(cities5, [allcity[i]], axis=0)
         if (allcity[i][1] >= (-1.6) * allcity[i][0]) and (allcity[i][1] < (-5.6) * allcity[i][0]):
             cities2 = np.append(cities2, [allcity[i]], axis=0)
-        if (allcity[i][1] >= (1.6) * allcity[i][0]) and (allcity[i][1] < (5.6) * allcity[i][0]):
+        if (allcity[i][1] >= 1.6 * allcity[i][0]) and (allcity[i][1] < 5.6 * allcity[i][0]):
             cities4 = np.append(cities4, [allcity[i]], axis=0)
-        if (allcity[i][1] >= (-5.6) * allcity[i][0]) and (allcity[i][1] >= (5.6) * allcity[i][0]):
+        if (allcity[i][1] >= (-5.6) * allcity[i][0]) and (allcity[i][1] >= 5.6 * allcity[i][0]):
             cities3 = np.append(cities3, [allcity[i]], axis=0)
 
     # print(np.shape(cities3))
@@ -163,13 +163,13 @@ def nn_tsp(cities):
     return tour1
 
 
-def nearest_neighbor(A, unvisited, cities2):
+def nearest_neighbor(current_point, unvisited, cities2):
     "Find the city in cities that is nearest to city A."
 
     index_in_rest = -1
-    dis = distance(unvisited[0], A)
+    dis = distance(unvisited[0], current_point)
     for i in range(len(unvisited)):
-        new_dis = distance(unvisited[i], A)
+        new_dis = distance(unvisited[i], current_point)
         # print(new_dis)
         if new_dis <= dis:
             dis = new_dis
