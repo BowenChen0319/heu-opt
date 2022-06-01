@@ -48,7 +48,7 @@ cities1 = np.array([[300, 0],
 print(np.shape(cities1))
 
 # 2-opt algo #                 
-COUNT_MAX =500
+COUNT_MAX = 500
 
 
 def cut_cities(cities):
@@ -128,6 +128,7 @@ def update_path(path):
         process_bar(count, COUNT_MAX)
         reverse_path = get_reverse_path(path.copy())
         if compare_paths(path, reverse_path):
+            #print("found better")
             count = 0
             path = reverse_path
         else:
@@ -251,9 +252,10 @@ def path_inpart(cities):
     cities_inpart= cut_cities(cities)
     path=[]
     for i in range(len(cities_inpart)):
-        print(i)
+        print("\n",i)
         path=path+[update_path(nn_tsp(cut_cities(cities)[i]))]
     return path
+
 # opt_2()
 # show(alter_tour(nn_tsp(cities)))
 # print(all_segments(5))
