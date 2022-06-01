@@ -1,6 +1,6 @@
 # coding: utf-8
 import sys
-
+from tqdm import tqdm
 import matplotlib.pyplot as plt
 import numpy as np
 import numpy.random as random
@@ -19,15 +19,13 @@ lines = input_file.readlines()
 # define number of items
 nbItems = len(lines) - 1
 
-cities = np.array([[float(0), float(0)]])
+cities = np.array([[float(0), float(0), 0]])
 for i in range(1, nbItems):
     curr_line = lines[i].split(';')
-    cities = np.append(cities, [[float(curr_line[0]), float(curr_line[1])]], axis=0)
-
+    cities = np.append(cities, [[float(curr_line[0]), float(curr_line[1]), i]], axis=0)
 
 print("\n---INSTANCE---")
 print(np.shape(cities))
-
 
 cities1 = np.array([[300, 0],
                     [450, 100],
@@ -50,7 +48,31 @@ cities1 = np.array([[300, 0],
 print(np.shape(cities1))
 
 # 2-opt algo #                 
-COUNT_MAX = 500
+COUNT_MAX =500
+
+
+def cut_cities(cities):
+    allcity = np.delete(cities, 0, axis=0)
+    cities1 = np.array([[float(0), float(0), 0]])
+    cities2 = np.array([[float(0), float(0), 0]])
+    cities3 = np.array([[float(0), float(0), 0]])
+    cities4 = np.array([[float(0), float(0), 0]])
+    cities5 = np.array([[float(0), float(0), 0]])
+    for i in range(len(allcity)):
+        if allcity[i][1] < (-1.6) * allcity[i][0]:
+            cities1 = np.append(cities1, [allcity[i]], axis=0)
+        if allcity[i][1] < (1.6) * allcity[i][0]:
+            cities5 = np.append(cities5, [allcity[i]], axis=0)
+        if (allcity[i][1] >= (-1.6) * allcity[i][0]) and (allcity[i][1] < (-5.6) * allcity[i][0]):
+            cities2 = np.append(cities2, [allcity[i]], axis=0)
+        if (allcity[i][1] >= (1.6) * allcity[i][0]) and (allcity[i][1] < (5.6) * allcity[i][0]):
+            cities4 = np.append(cities4, [allcity[i]], axis=0)
+        if (allcity[i][1] >= (-5.6) * allcity[i][0]) and (allcity[i][1] >= (5.6) * allcity[i][0]):
+            cities3 = np.append(cities3, [allcity[i]], axis=0)
+
+    # print(np.shape(cities3))
+    cutedcities = [cities1, cities2, cities3, cities4, cities5]
+    return cutedcities
 
 
 # (nicht mehr verwendet) Da die Eingabedaten, die Sie selbst erstellen, der beste Weg sein können, 
@@ -102,8 +124,8 @@ def compare_paths(path_one, path_two):
 def update_path(path):
     count = 0
     while count < COUNT_MAX:
-        #print(count)
-        process_bar(count,COUNT_MAX)
+        # print(count)
+        process_bar(count, COUNT_MAX)
         reverse_path = get_reverse_path(path.copy())
         if compare_paths(path, reverse_path):
             count = 0
@@ -115,48 +137,53 @@ def update_path(path):
 
 def opt_2():
     best_path = nn_tsp(cities)
-    path = update_path(best_path)
-    show(path)
+    path1 = update_path(best_path)
+    show(path1)
+    # path = alter_tour(path1)
+    # show(path)
 
 
 def nn_tsp(cities):
-    
     cities2 = cities
     start = 0
     tour = np.array([start])
     unvisited = np.delete(cities2, 0, axis=0)
     n = len(cities2)
-
+    tour1=[0]
     while len(unvisited) != 0:
-        process_bar(n-len(unvisited),n)
-        #C = nearest_neighbor(cities2[tour[-1]], unvisited, cities2)
+        process_bar(n - len(unvisited), n)
+        # C = nearest_neighbor(cities2[tour[-1]], unvisited, cities2)
         index_in_all, index_in_rest = nearest_neighbor(cities2[tour[-1]], unvisited, cities2)
-        tour = np.append(tour, index_in_all)
-        #unvisited = np.setdiff1d(unvisited, cities2[C])
+        #np.append(tour, index_in_all)
+        tour1=tour1+[index_in_all]
+        # unvisited = np.setdiff1d(unvisited, cities2[C])
         unvisited = np.delete(unvisited, index_in_rest, axis=0)
-    return tour
+    # tour = np.append(tour, 0)
+    return tour1
 
 
 def nearest_neighbor(A, unvisited, cities2):
     "Find the city in cities that is nearest to city A."
 
-    
-    min_city_index = -1
+    index_in_rest = -1
     dis = distance(unvisited[0], A)
     for i in range(len(unvisited)):
         new_dis = distance(unvisited[i], A)
         # print(new_dis)
         if new_dis <= dis:
             dis = new_dis
-            min_city_index = i
-    #print(min_city_index)
-    min_city = unvisited[min_city_index]
-    #print(min_city)
+            index_in_rest = i
+    # print(index_in_rest)
+    min_city = unvisited[index_in_rest]
+    l = int(min_city[2])
+    #print(l)
+    # print(min_city)
 
-    for l in range(len(cities2)):
-        #print(cities2[l])
-        if (cities2[l][0] == min_city[0]) and (cities2[l][1] == min_city[1]):
-            return l, min_city_index
+    # for l in range(len(cities2)):
+    # print(cities2[l])
+    # if (cities2[l][0] == min_city[0]) and (cities2[l][1] == min_city[1]):
+
+    return l, index_in_rest
 
 
 def distance(A, B):
@@ -168,16 +195,68 @@ def show(path):
     fig = plt.figure()
     ax = fig.add_subplot(1, 1, 1)
     ax.plot(cities[:, 0], cities[:, 1], 'o', color='red')
-    ax.plot(cities[path, 0], cities[path, 1], color='red')
+    for i in range(len(path)):
+        ax.plot(cities[path[i], 0], cities[path[i], 1], color='blue')
     plt.show()
 
+
+def showcity(city):
+    fig = plt.figure()
+    ax = fig.add_subplot(1, 1, 1)
+    ax.plot(city[:, 0], city[:, 1], 'o', color='red')
+    # ax.plot(cities[path, 0], cities[path, 1], color='red')
+    plt.show()
+
+
 def process_bar(num, total):
-    rate = float(num)/total
-    ratenum = int(100*rate)
-    r = '\r[{}{}]{}%'.format('*'*ratenum,' '*(100-ratenum), ratenum)
+    rate = float(num) / total
+    ratenum = int(100 * rate)
+    r = '\r[{}{}]{}%'.format('*' * ratenum, ' ' * (100 - ratenum), ratenum)
     sys.stdout.write(r)
     sys.stdout.flush()
 
 
-opt_2()
-#show(nn_tsp(cities))
+def reverse_segment_if_better(tour, i, j):
+    "If reversing tour[i:j] would make the tour shorter, then do it."
+    # Given tour [...A-B...C-D...], consider reversing B...C to get [...A-C...B-D...]
+    A, B, C, D = cities[tour[i]], cities[tour[i + 1]], cities[tour[j - 1]], cities[tour[j % len(tour)]]
+
+    # Are old edges (AB + CD) longer than new ones (AC + BD)? If so, reverse segment.
+    # print(distance(A,B))
+    if distance(A, B) + distance(C, D) > distance(A, C) + distance(B, D):
+        print("yes")
+        tour[i:j + 1] = tour[j:i - 1:-1]
+
+
+def alter_tour(tour):
+    "Try to alter tour for the better by reversing segments."
+    # print(len(tour))
+    original_length = calculate_path_distance(tour)
+    list = (np.sort(all_segments(len(tour))))[::-1]
+    for (start, end) in tqdm(list):
+        reverse_segment_if_better(tour, start, end)
+    # If we made an improvement, then try again; else stop and return tour.
+    if calculate_path_distance(tour) < original_length:
+        return alter_tour(tour)
+    return tour
+
+
+def all_segments(N):
+    "Return (start, end) pairs of indexes that form segments of tour of length N."
+    return [(start, start + length)
+            for length in range(N - 2, 0, -1)
+            for start in range(1, N - length)]
+
+def path_inpart(cities):
+    cities_inpart= cut_cities(cities)
+    path=[]
+    for i in range(len(cities_inpart)):
+        print(i)
+        path=path+[update_path(nn_tsp(cut_cities(cities)[i]))]
+    return path
+# opt_2()
+# show(alter_tour(nn_tsp(cities)))
+# print(all_segments(5))
+# showcity(cut_cities(cities))
+# showcity(cities)
+show(path_inpart(cities))
