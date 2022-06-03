@@ -253,7 +253,7 @@ def path_inpart(cities):
     path=[]
     for i in range(len(cities_inpart)):
         print("\n",i)
-        path=path+[update_path(nn_tsp(cut_cities(cities)[i]))]
+        path=path+[(nn_tsp(cut_cities(cities)[i]))]
     return path
 
 # opt_2()
