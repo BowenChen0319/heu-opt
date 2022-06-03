@@ -112,6 +112,22 @@ def get_reverse_path(path):
         path[start: end + 1] = path[start: end + 1][::-1]
         return path
 
+def get_reverse_path_with_index(path,i,j):
+    start=i
+    end=j
+    #start = random.randint(1, len(path) - 1)
+    #while True:
+        #end = random.randint(1, len(path) - 1)
+        #if np.abs(start - end) > 1:
+            #break
+
+    if start > end:
+        path[end: start + 1] = path[end: start + 1][::-1]
+        return path
+    else:
+        path[start: end + 1] = path[start: end + 1][::-1]
+        return path
+
 
 # 比较两个路径的长短
 # Vergleich der Länge von zwei Pfaden
@@ -128,12 +144,35 @@ def update_path(path):
         process_bar(count, COUNT_MAX)
         reverse_path = get_reverse_path(path.copy())
         if compare_paths(path, reverse_path):
-            #print("found better")
+            # print("found better")
             count = 0
             path = reverse_path
         else:
             count += 1
     return path
+
+
+def two_opt(route):
+    best = route
+    improved = True
+    h=0
+    while improved:
+        improved = False
+        for i in tqdm(range(1, len(route) - 2)):
+            for j in range(i + 1, len(route)):
+                if j - i == 1: continue  # changes nothing, skip then
+                new_route = route[:]
+                #print("\n", new_route)
+                new_route[i:j] = route[j - 1:i - 1:-1]  # this is the 2woptSwap
+                #print("\n", new_route)
+                if calculate_path_distance(new_route) < calculate_path_distance(best):  # what should cost be?
+                    best = new_route
+                    improved = True
+        route = best
+        h=h+1
+        print("\n", h)
+
+    return best
 
 
 def opt_2():
@@ -150,13 +189,13 @@ def nn_tsp(cities):
     tour = np.array([start])
     unvisited = np.delete(cities2, 0, axis=0)
     n = len(cities2)
-    tour1=[0]
+    tour1 = [0]
     while len(unvisited) != 0:
         process_bar(n - len(unvisited), n)
         # C = nearest_neighbor(cities2[tour[-1]], unvisited, cities2)
         index_in_all, index_in_rest = nearest_neighbor(cities2[tour[-1]], unvisited, cities2)
-        #np.append(tour, index_in_all)
-        tour1=tour1+[index_in_all]
+        # np.append(tour, index_in_all)
+        tour1 = tour1 + [index_in_all]
         # unvisited = np.setdiff1d(unvisited, cities2[C])
         unvisited = np.delete(unvisited, index_in_rest, axis=0)
     # tour = np.append(tour, 0)
@@ -177,7 +216,7 @@ def nearest_neighbor(current_point, unvisited, cities2):
     # print(index_in_rest)
     min_city = unvisited[index_in_rest]
     l = int(min_city[2])
-    #print(l)
+    # print(l)
     # print(min_city)
 
     # for l in range(len(cities2)):
@@ -196,10 +235,20 @@ def show(path):
     fig = plt.figure()
     ax = fig.add_subplot(1, 1, 1)
     ax.plot(cities[:, 0], cities[:, 1], 'o', color='red')
-    for i in range(len(path)):
-        ax.plot(cities[path[i], 0], cities[path[i], 1], color='blue')
+    if len(path) >= 2:
+        for i in range(len(path)):
+            ax.plot(cities[path[i], 0], cities[path[i], 1], color='blue')
+    else:
+        print("singel path")
+        ax.plot(cities[path, 0], cities[path, 1], color='blue')
     plt.show()
 
+def showsingle(path):
+    fig = plt.figure()
+    ax = fig.add_subplot(1, 1, 1)
+    ax.plot(cities[:, 0], cities[:, 1], 'o', color='red')
+    ax.plot(cities[path, 0], cities[path, 1], color='blue')
+    plt.show()
 
 def showcity(city):
     fig = plt.figure()
@@ -248,17 +297,20 @@ def all_segments(N):
             for length in range(N - 2, 0, -1)
             for start in range(1, N - length)]
 
+
 def path_inpart(cities):
-    cities_inpart= cut_cities(cities)
-    path=[]
+    cities_inpart = cut_cities(cities)
+    path = []
     for i in range(len(cities_inpart)):
-        print("\n",i)
-        path=path+[(nn_tsp(cut_cities(cities)[i]))]
+        print("\n", i)
+        path = path + [(nn_tsp(cut_cities(cities)[i]))]
     return path
+
 
 # opt_2()
 # show(alter_tour(nn_tsp(cities)))
 # print(all_segments(5))
 # showcity(cut_cities(cities))
 # showcity(cities)
-show(path_inpart(cities))
+#show(path_inpart(cities))
+showsingle(two_opt(nn_tsp(cut_cities(cities)[1])))
