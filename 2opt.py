@@ -59,7 +59,7 @@ def cut_cities(cities):
     cities4 = np.array([[float(0), float(0), 0]])
     cities5 = np.array([[float(0), float(0), 0]])
     for i in range(len(allcity)):
-        if allcity[i][1] < (-1.6) * allcity[i][0]:
+        if allcity[i][1] < (-1.6) * allcity[i][0]: #y < -1.6 * x
             cities1 = np.append(cities1, [allcity[i]], axis=0)
         if allcity[i][1] < 1.6 * allcity[i][0]:
             cities5 = np.append(cities5, [allcity[i]], axis=0)
@@ -128,7 +128,7 @@ def update_path(path):
         process_bar(count, COUNT_MAX)
         reverse_path = get_reverse_path(path.copy())
         if compare_paths(path, reverse_path):
-            #print("found better")
+            # print("found better")
             count = 0
             path = reverse_path
         else:
@@ -150,13 +150,13 @@ def nn_tsp(cities):
     tour = np.array([start])
     unvisited = np.delete(cities2, 0, axis=0)
     n = len(cities2)
-    tour1=[0]
+    tour1 = [0]
     while len(unvisited) != 0:
         process_bar(n - len(unvisited), n)
         # C = nearest_neighbor(cities2[tour[-1]], unvisited, cities2)
         index_in_all, index_in_rest = nearest_neighbor(cities2[tour[-1]], unvisited, cities2)
-        #np.append(tour, index_in_all)
-        tour1=tour1+[index_in_all]
+        # np.append(tour, index_in_all)
+        tour1 = tour1 + [index_in_all]
         # unvisited = np.setdiff1d(unvisited, cities2[C])
         unvisited = np.delete(unvisited, index_in_rest, axis=0)
     # tour = np.append(tour, 0)
@@ -164,7 +164,7 @@ def nn_tsp(cities):
 
 
 def nearest_neighbor(current_point, unvisited, cities2):
-    "Find the city in cities that is nearest to city A."
+    """Find the city in cities that is nearest to city A."""
 
     index_in_rest = -1
     dis = distance(unvisited[0], current_point)
@@ -177,7 +177,7 @@ def nearest_neighbor(current_point, unvisited, cities2):
     # print(index_in_rest)
     min_city = unvisited[index_in_rest]
     l = int(min_city[2])
-    #print(l)
+    # print(l)
     # print(min_city)
 
     # for l in range(len(cities2)):
@@ -188,7 +188,7 @@ def nearest_neighbor(current_point, unvisited, cities2):
 
 
 def distance(A, B):
-    "The distance between two points."
+    """The distance between two points."""
     return np.sqrt(np.sum(np.power(A - B, 2)))
 
 
@@ -242,19 +242,22 @@ def alter_tour(tour):
     return tour
 
 
-def all_segments(N):
+def all_segments(n):
     "Return (start, end) pairs of indexes that form segments of tour of length N."
     return [(start, start + length)
-            for length in range(N - 2, 0, -1)
-            for start in range(1, N - length)]
+            for length in range(n - 2, 0, -1)
+            for start in range(1, n - length)]
+
 
 def path_inpart(cities):
-    cities_inpart= cut_cities(cities)
-    path=[]
+    cities_inpart = cut_cities(cities)
+    path = []
     for i in range(len(cities_inpart)):
-        print("\n",i)
-        path=path+[update_path(nn_tsp(cut_cities(cities)[i]))]
+        print("\n", i)
+        #path = path + [update_path(nn_tsp(cut_cities(cities)[i]))]
+        path = path + [nn_tsp(cut_cities(cities)[i])]
     return path
+
 
 # opt_2()
 # show(alter_tour(nn_tsp(cities)))
