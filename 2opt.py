@@ -75,7 +75,31 @@ def cut_cities(cities):
     return cutedcities
 
 
-# (nicht mehr verwendet) Da die Eingabedaten, die Sie selbst erstellen, der beste Weg sein können, 
+def cut_cities(cities):
+    allcity = np.delete(cities, 0, axis=0)
+    cities1 = np.array([[float(0), float(0), 0]])
+    cities2 = np.array([[float(0), float(0), 0]])
+    cities3 = np.array([[float(0), float(0), 0]])
+    cities4 = np.array([[float(0), float(0), 0]])
+    cities5 = np.array([[float(0), float(0), 0]])
+    for i in range(len(allcity)):
+        if allcity[i][1] < (-1.6) * allcity[i][0]:
+            cities1 = np.append(cities1, [allcity[i]], axis=0)
+        if allcity[i][1] < 1.6 * allcity[i][0]:
+            cities5 = np.append(cities5, [allcity[i]], axis=0)
+        if (allcity[i][1] >= (-1.6) * allcity[i][0]) and (allcity[i][1] < (-5.6) * allcity[i][0]):
+            cities2 = np.append(cities2, [allcity[i]], axis=0)
+        if (allcity[i][1] >= 1.6 * allcity[i][0]) and (allcity[i][1] < 5.6 * allcity[i][0]):
+            cities4 = np.append(cities4, [allcity[i]], axis=0)
+        if (allcity[i][1] >= (-5.6) * allcity[i][0]) and (allcity[i][1] >= 5.6 * allcity[i][0]):
+            cities3 = np.append(cities3, [allcity[i]], axis=0)
+
+    # print(np.shape(cities3))
+    cutedcities = [cities1, cities2, cities3, cities4, cities5]
+    return cutedcities
+
+
+# (nicht mehr verwendet) Da die Eingabedaten, die Sie selbst erstellen, der beste Weg sein können,
 # erhalten Sie zunächst eine zufällige Route (eine beliebige machbare Lösung, die Sie wählen)
 def get_random_path(best_path):
     random.shuffle(best_path)
@@ -85,6 +109,8 @@ def get_random_path(best_path):
 
 # Berechnen des Abstands zwischen zwei Punkten
 def calculate_distance(from_index, to_index):
+    # print(cities[from_index])
+    # print(cities[to_index])
     return np.sqrt(np.sum(np.power(cities[from_index] - cities[to_index], 2)))
 
 
@@ -95,92 +121,71 @@ def calculate_path_distance(path):
         sum += calculate_distance(path[i - 1], path[i])
     return sum
 
+def c(tour, i, j):
+    # print(tour[i])
+    # print(tour[j])
+    return calculate_distance(tour[i], tour[j])
 
-# 获取随机的起始点还有中间的反转后的路径
-# Ermitteln des zufälligen Startpunkts und des umgekehrten Pfads dazwischen
-def get_reverse_path(path):
-    start = random.randint(1, len(path) - 1)
-    while True:
-        end = random.randint(1, len(path) - 1)
-        if np.abs(start - end) > 1:
-            break
-
-    if start > end:
-        path[end: start + 1] = path[end: start + 1][::-1]
-        return path
+def cal_diff(route,i,j):
+    if j+1 == len(route):
+        diff = c(route, i, i + 1) + c(route, j, 0) - c(route, i, j) - c(route, i + 1, 0)
     else:
-        path[start: end + 1] = path[start: end + 1][::-1]
-        return path
+        diff=c(route, i, i + 1) + c(route, j, j + 1) - c(route, i, j) - c(route, i + 1, j + 1)
 
-def get_reverse_path_with_index(path,i,j):
-    start=i
-    end=j
-    #start = random.randint(1, len(path) - 1)
-    #while True:
-        #end = random.randint(1, len(path) - 1)
-        #if np.abs(start - end) > 1:
-            #break
+    return diff
 
+
+def swap(path, i, j):
+    start = i
+    end =j
     if start > end:
+        #return path[:i] + list(reversed(path[i:j + 1])) + path[j + 1:]
         path[end: start + 1] = path[end: start + 1][::-1]
-        return path
     else:
+        #path = path[:i] + list(reversed(path[i:j + 1])) + path[j + 1:]
         path[start: end + 1] = path[start: end + 1][::-1]
-        return path
 
-
-# 比较两个路径的长短
-# Vergleich der Länge von zwei Pfaden
-def compare_paths(path_one, path_two):
-    return calculate_path_distance(path_one) > calculate_path_distance(path_two)
-
-
-# 不断优化，得到一个最终的最短的路径
-# Kontinuierliche Optimierung, um einen endgültigen kürzesten Weg zu finden
-def update_path(path):
-    count = 0
-    while count < COUNT_MAX:
-        # print(count)
-        process_bar(count, COUNT_MAX)
-        reverse_path = get_reverse_path(path.copy())
-        if compare_paths(path, reverse_path):
-            # print("found better")
-            count = 0
-            path = reverse_path
-        else:
-            count += 1
     return path
+
 
 
 def two_opt(route):
     best = route
     improved = True
-    h=0
+    h = 0
     while improved:
         improved = False
-        for i in tqdm(range(1, len(route) - 2)):
-            for j in range(i + 1, len(route)):
-                if j - i == 1: continue  # changes nothing, skip then
-                new_route = route[:]
-                #print("\n", new_route)
-                new_route[i:j] = route[j - 1:i - 1:-1]  # this is the 2woptSwap
-                #print("\n", new_route)
-                if calculate_path_distance(new_route) < calculate_path_distance(best):  # what should cost be?
-                    best = new_route
+        for i in tqdm(range(0, len(route) - 3)):
+
+            for j in range(i + 1, len(route) - 1):
+                if j - i == 1:
+                    continue  # changes nothing, skip then
+                # new_route = route[:]
+                # print("\n", new_route)
+                # new_route[i:j] = route[j-1:i-1:-1]  # this is the 2woptSwap
+                # print("\n", new_route)
+                diff=cal_diff(route,i,j)
+                # print(gain)
+                # if calculate_path_distance(new_route) < calculate_path_distance(best):  # what should cost be?
+                if diff > 0:
+                    # best = new_route
+
+                    # best = swap(route, i + 1, j)
+                    #best = get_reverse_path_with_index(route, i + 1, j)
+                    best=swap(route,i+1,j)
+
+                    route=best
                     improved = True
+                    break  # return to while
+                    #continue
+            if improved:
+                break
         route = best
-        h=h+1
+        h = h + 1
         print("\n", h)
 
     return best
 
-
-def opt_2():
-    best_path = nn_tsp(cities)
-    path1 = update_path(best_path)
-    show(path1)
-    # path = alter_tour(path1)
-    # show(path)
 
 
 def nn_tsp(cities):
@@ -200,6 +205,10 @@ def nn_tsp(cities):
         unvisited = np.delete(unvisited, index_in_rest, axis=0)
     # tour = np.append(tour, 0)
     return tour1
+
+
+def path_to_tour(path):
+    return path + [0]
 
 
 def nearest_neighbor(current_point, unvisited, cities2):
@@ -243,12 +252,14 @@ def show(path):
         ax.plot(cities[path, 0], cities[path, 1], color='blue')
     plt.show()
 
+
 def showsingle(path):
     fig = plt.figure()
     ax = fig.add_subplot(1, 1, 1)
     ax.plot(cities[:, 0], cities[:, 1], 'o', color='red')
     ax.plot(cities[path, 0], cities[path, 1], color='blue')
     plt.show()
+
 
 def showcity(city):
     fig = plt.figure()
@@ -266,38 +277,6 @@ def process_bar(num, total):
     sys.stdout.flush()
 
 
-def reverse_segment_if_better(tour, i, j):
-    "If reversing tour[i:j] would make the tour shorter, then do it."
-    # Given tour [...A-B...C-D...], consider reversing B...C to get [...A-C...B-D...]
-    A, B, C, D = cities[tour[i]], cities[tour[i + 1]], cities[tour[j - 1]], cities[tour[j % len(tour)]]
-
-    # Are old edges (AB + CD) longer than new ones (AC + BD)? If so, reverse segment.
-    # print(distance(A,B))
-    if distance(A, B) + distance(C, D) > distance(A, C) + distance(B, D):
-        print("yes")
-        tour[i:j + 1] = tour[j:i - 1:-1]
-
-
-def alter_tour(tour):
-    "Try to alter tour for the better by reversing segments."
-    # print(len(tour))
-    original_length = calculate_path_distance(tour)
-    list = (np.sort(all_segments(len(tour))))[::-1]
-    for (start, end) in tqdm(list):
-        reverse_segment_if_better(tour, start, end)
-    # If we made an improvement, then try again; else stop and return tour.
-    if calculate_path_distance(tour) < original_length:
-        return alter_tour(tour)
-    return tour
-
-
-def all_segments(N):
-    "Return (start, end) pairs of indexes that form segments of tour of length N."
-    return [(start, start + length)
-            for length in range(N - 2, 0, -1)
-            for start in range(1, N - length)]
-
-
 def path_inpart(cities):
     cities_inpart = cut_cities(cities)
     path = []
@@ -312,5 +291,6 @@ def path_inpart(cities):
 # print(all_segments(5))
 # showcity(cut_cities(cities))
 # showcity(cities)
-#show(path_inpart(cities))
-showsingle(two_opt(nn_tsp(cut_cities(cities)[1])))
+# show(path_inpart(cities))
+showsingle(two_opt(nn_tsp(cut_cities(cities)[0]) + [0]))
+#showsingle(two_opt(nn_tsp(cities) + [0]))
