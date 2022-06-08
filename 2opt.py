@@ -51,7 +51,7 @@ print(np.shape(cities1))
 COUNT_MAX = 500
 
 
-def cut_cities(cities):
+def cut_cities_to_five(cities):
     allcity = np.delete(cities, 0, axis=0)
     cities1 = np.array([[float(0), float(0), 0]])
     cities2 = np.array([[float(0), float(0), 0]])
@@ -59,37 +59,13 @@ def cut_cities(cities):
     cities4 = np.array([[float(0), float(0), 0]])
     cities5 = np.array([[float(0), float(0), 0]])
     for i in range(len(allcity)):
-        if allcity[i][1] < (-1.6) * allcity[i][0]:
+        if allcity[i][1] < (-1.63) * allcity[i][0]:
             cities1 = np.append(cities1, [allcity[i]], axis=0)
-        if allcity[i][1] < 1.6 * allcity[i][0]:
+        if allcity[i][1] < 1.63 * allcity[i][0]:
             cities5 = np.append(cities5, [allcity[i]], axis=0)
-        if (allcity[i][1] >= (-1.6) * allcity[i][0]) and (allcity[i][1] < (-5.6) * allcity[i][0]):
+        if (allcity[i][1] >= (-1.63) * allcity[i][0]) and (allcity[i][1] < (-5.6) * allcity[i][0]):
             cities2 = np.append(cities2, [allcity[i]], axis=0)
-        if (allcity[i][1] >= 1.6 * allcity[i][0]) and (allcity[i][1] < 5.6 * allcity[i][0]):
-            cities4 = np.append(cities4, [allcity[i]], axis=0)
-        if (allcity[i][1] >= (-5.6) * allcity[i][0]) and (allcity[i][1] >= 5.6 * allcity[i][0]):
-            cities3 = np.append(cities3, [allcity[i]], axis=0)
-
-    # print(np.shape(cities3))
-    cutedcities = [cities1, cities2, cities3, cities4, cities5]
-    return cutedcities
-
-
-def cut_cities(cities):
-    allcity = np.delete(cities, 0, axis=0)
-    cities1 = np.array([[float(0), float(0), 0]])
-    cities2 = np.array([[float(0), float(0), 0]])
-    cities3 = np.array([[float(0), float(0), 0]])
-    cities4 = np.array([[float(0), float(0), 0]])
-    cities5 = np.array([[float(0), float(0), 0]])
-    for i in range(len(allcity)):
-        if allcity[i][1] < (-1.6) * allcity[i][0]:
-            cities1 = np.append(cities1, [allcity[i]], axis=0)
-        if allcity[i][1] < 1.6 * allcity[i][0]:
-            cities5 = np.append(cities5, [allcity[i]], axis=0)
-        if (allcity[i][1] >= (-1.6) * allcity[i][0]) and (allcity[i][1] < (-5.6) * allcity[i][0]):
-            cities2 = np.append(cities2, [allcity[i]], axis=0)
-        if (allcity[i][1] >= 1.6 * allcity[i][0]) and (allcity[i][1] < 5.6 * allcity[i][0]):
+        if (allcity[i][1] >= 1.63 * allcity[i][0]) and (allcity[i][1] < 5.6 * allcity[i][0]):
             cities4 = np.append(cities4, [allcity[i]], axis=0)
         if (allcity[i][1] >= (-5.6) * allcity[i][0]) and (allcity[i][1] >= 5.6 * allcity[i][0]):
             cities3 = np.append(cities3, [allcity[i]], axis=0)
@@ -127,11 +103,14 @@ def c(tour, i, j):
     return calculate_distance(tour[i], tour[j])
 
 def cal_diff(route,i,j):
-    if j+1 == len(route):
-        diff = c(route, i, i + 1) + c(route, j, 0) - c(route, i, j) - c(route, i + 1, 0)
-    else:
-        diff=c(route, i, i + 1) + c(route, j, j + 1) - c(route, i, j) - c(route, i + 1, j + 1)
 
+    # if j+1 == len(route):
+    #     diff = c(route, i, i + 1) + c(route, j, 0) - c(route, i, j) - c(route, i + 1, 0)
+    # else:
+    #     diff=c(route, i, i + 1) + c(route, j, j + 1) - c(route, i, j) - c(route, i + 1, j + 1)
+    #
+    n=len(route)
+    diff = c(route,i,(i+1)%n) + c(route,j,(j+1)%n) - c(route,i,j) - c(route,(i+1)%n,(j+1)%n)
     return diff
 
 
@@ -155,9 +134,10 @@ def two_opt(route):
     h = 0
     while improved:
         improved = False
-        for i in tqdm(range(0, len(route) - 3)):
+        route=best
+        for i in tqdm(range(0, len(route) )):
 
-            for j in range(i + 1, len(route) - 1):
+            for j in range(i + 1, len(route) ):
                 if j - i == 1:
                     continue  # changes nothing, skip then
                 # new_route = route[:]
@@ -178,8 +158,9 @@ def two_opt(route):
                     improved = True
                     break  # return to while
                     #continue
-            if improved:
-                break
+            #if improved:
+
+                #break
         route = best
         h = h + 1
         print("\n", h)
@@ -278,19 +259,20 @@ def process_bar(num, total):
 
 
 def path_inpart(cities):
-    cities_inpart = cut_cities(cities)
+    cities_inpart = cut_cities_to_five(cities)
     path = []
     for i in range(len(cities_inpart)):
         print("\n", i)
-        path = path + [(nn_tsp(cut_cities(cities)[i]))]
+        path = path + [two_opt(nn_tsp(cut_cities_to_five(cities)[i]))]
     return path
 
 
 # opt_2()
 # show(alter_tour(nn_tsp(cities)))
 # print(all_segments(5))
-# showcity(cut_cities(cities))
+
+#showcity(cut_cities_to_five(cities)[0])
 # showcity(cities)
-# show(path_inpart(cities))
-showsingle(two_opt(nn_tsp(cut_cities(cities)[0]) + [0]))
+#show(path_inpart(cities))
+showsingle(two_opt(nn_tsp(cut_cities_to_five(cities)[2]) + [0]))
 #showsingle(two_opt(nn_tsp(cities) + [0]))
