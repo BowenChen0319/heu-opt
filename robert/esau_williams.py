@@ -4,25 +4,49 @@ import matplotlib.pyplot as plt
 import matplotlib
 import networkx as nx
 from datetime import datetime
+import sys
+import os
+
+if len(sys.argv) != 2:
+    print('Please provide the cost of cable')
+    exit(1)
+
+start = datetime.now()
+print("Start", start)
+
+folder = f'./{start.strftime("%Y-%m-%d-%H-%M")}'
+os.makedirs(folder)
+os.makedirs(f'{folder}/figs')
+os.makedirs(f'{folder}/files')
 
 matplotlib.use("Agg")
 
 max_heliostats = 128
-price_cable = 10
+price_cable = int(sys.argv[1])
 
-price_conductor = 10
+price_conductor = 100
 color_conductor = 'green'
 
-price_switch8 = 100
+price_switch8 = 800
 color_switch8 = 'yellow'
 
-price_switch16 = 800
+price_switch16 = 1500
 color_switch16 = 'orange'
 
 arr = np.loadtxt('./PS10.csv', delimiter=';')
 arr = np.insert(arr, 0, [0, 0], axis=0)
 
-# arr = [[0,0], [1,1], [0,1], [1,0], [1,2], [2,1]]
+with open(f'{folder}/info.txt', 'w') as f:
+    f.write(f'Program started: {start}\n')
+    f.write(f'---------------\n')
+    f.write(f'Conductor -> Cost: {price_conductor}, Color: {color_conductor}\n')
+    f.write(f'Switch 8 -> Cost: {price_switch8}, Color: {color_switch8}\n')
+    f.write(f'Switch 16 -> Cost: {price_switch16}, Color: {color_switch16}\n')
+    f.write(f'Cable -> Cost per meter: {price_cable}\n')
+    f.write(f'---------------\n')
+    f.write(f'Number of nodes: {len(arr)}\n')
+    f.write('Using Esau-Williams heuristic to connect the nodes.\n')
+    f.write(f'---------------\n')
 
 adjacency_matrix = squareform(pdist(arr))
 adjacency_matrix[adjacency_matrix == 0] = None
@@ -42,9 +66,11 @@ def get_connection_type(degree):
 
 
 def save_graph(graph, subtrees, counter):
-    nx.write_weighted_edgelist(graph, f'./files/graph_edgelist_{counter}.txt')
-    np.save(f'./files/adj_{counter}', adjacency_matrix)
-    np.save(f'./files/subtrees_{counter}', subtrees)
+    nx.write_weighted_edgelist(graph, f'{folder}/files/graph_edgelist'
+                                      f'_{counter}.txt')
+    np.save(f'{folder}/files/adj_{counter}', adjacency_matrix)
+    np.save(f'{folder}/files/subtrees_{counter}',
+            np.asanyarray(subtrees, dtype=object))
 
 
 def draw_graph(graph, counter):
@@ -60,7 +86,7 @@ def draw_graph(graph, counter):
     ax.set_title('Connection of heliostats using EW')
     t = plt.figtext(0, .01, f"total cost = {calc_cost(graph)}")
 
-    fig.savefig(f"./figs/graph_{counter}.png", dpi=300)
+    fig.savefig(f"{folder}/figs/graph_{counter}.png", dpi=300)
     ax.clear()
     plt.gcf().texts.remove(t)
 
@@ -82,8 +108,6 @@ def calc_cost(graph):
 
 
 def esau_williams():
-    # better implementation: https://github.com/vikramgopali1970/Esau-Williams-Algorithm-CMST/blob/master/EsauWilliamsAlgorithm.java
-
     # Add nodes to Graph
     graph = nx.Graph()
     graph.add_nodes_from(range(len(arr)))
@@ -100,7 +124,6 @@ def esau_williams():
     last_cost = calc_cost(graph)
     run = True
     run_counter = 0
-    print("Start", datetime.now())
     while run:
         run_counter += 1
         trade_offs = []
@@ -179,9 +202,6 @@ def esau_williams():
 
         central_link_to_remove = subtrees[subtree_index_of_start][0]
 
-        subtrees[subtree_index_of_end] += subtrees[subtree_index_of_start]
-        subtrees.pop(subtree_index_of_start)
-
         graph.remove_edge(0, central_link_to_remove)
         graph.add_edge(start_vertex, end_vertex,
                        weight=adjacency_matrix[start_vertex][
@@ -196,6 +216,8 @@ def esau_williams():
             run = False
         else:
             last_cost = new_cost
+            subtrees[subtree_index_of_end] += subtrees[subtree_index_of_start]
+            subtrees.pop(subtree_index_of_start)
 
         if run_counter % 50 == 0:
             print('new cost:', new_cost)
@@ -208,4 +230,11 @@ def esau_williams():
 
 
 esau_williams()
-print("END: ", datetime.now())
+end = datetime.now()
+
+with open(f'{folder}/info.txt', 'a') as f:
+    f.write(f'Program ended: {end}\n')
+    f.write(f'Program runtime: {end - start}\n')
+
+print("END:", end)
+print("Runtime:", end - start)
