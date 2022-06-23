@@ -14,7 +14,7 @@ if len(sys.argv) != 2:
 start = datetime.now()
 print("Start", start)
 
-folder = f'./{start.strftime("%Y-%m-%d-%H-%M")}'
+folder = f'./{start.strftime("%Y-%m-%d-%H-%M-%S")}'
 os.makedirs(folder)
 os.makedirs(f'{folder}/figs')
 os.makedirs(f'{folder}/files')
@@ -33,7 +33,7 @@ color_switch8 = 'yellow'
 price_switch16 = 1500
 color_switch16 = 'orange'
 
-arr = np.loadtxt('./PS10.csv', delimiter=';')
+arr = np.loadtxt('../PS10.csv', delimiter=';')
 arr = np.insert(arr, 0, [0, 0], axis=0)
 
 with open(f'{folder}/info.txt', 'w') as f:
@@ -65,6 +65,22 @@ def get_connection_type(degree):
         return [99999999999999, 'red']
 
 
+def get_subtree_index(array, element):
+    for i in range(len(array)):
+        if element in array[i]:
+            return i
+    return None
+
+
+def calc_cost(graph):
+    connection_cost = 0
+    for i in range(1, graph.number_of_nodes()):
+        connection_cost += get_connection_type(graph.degree[i])[0]
+
+    cable_cost = graph.size('weight') * price_cable
+    return connection_cost + cable_cost
+
+
 def save_graph(graph, subtrees, counter):
     nx.write_weighted_edgelist(graph, f'{folder}/files/graph_edgelist'
                                       f'_{counter}.txt')
@@ -91,22 +107,6 @@ def draw_graph(graph, counter):
     plt.gcf().texts.remove(t)
 
 
-def get_subtree_index(array, element):
-    for i in range(len(array)):
-        if element in array[i]:
-            return i
-    return None
-
-
-def calc_cost(graph):
-    connection_cost = 0
-    for i in range(1, graph.number_of_nodes()):
-        connection_cost += get_connection_type(graph.degree[i])[0]
-
-    cable_cost = graph.size('weight') * price_cable
-    return connection_cost + cable_cost
-
-
 def esau_williams():
     # Add nodes to Graph
     graph = nx.Graph()
@@ -121,9 +121,8 @@ def esau_williams():
     print('Init weight:', calc_cost(graph))
 
     subtrees = [[x] for x in range(1, graph.number_of_nodes())]
-    last_cost = calc_cost(graph)
 
-    for vertex_i in range(1, graph.number_of_nodes()):
+    for vertex_i in range(graph.number_of_nodes(), 1, -1):
         trade_offs = []
         # check if directly connected to center
         if not graph.has_edge(0, vertex_i):

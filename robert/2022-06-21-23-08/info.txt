@@ -1,0 +1,12 @@
+Program started: 2022-06-21 23:08:20.306931
+---------------
+Conductor -> Cost: 100, Color: green
+Switch 8 -> Cost: 800, Color: yellow
+Switch 16 -> Cost: 1500, Color: orange
+Cable -> Cost per meter: 14
+---------------
+Number of nodes: 625
+Using Esau-Williams heuristic to connect the nodes.
+---------------
+Program ended: 2022-06-22 04:03:34.565167
+Program runtime: 4:55:14.258236
