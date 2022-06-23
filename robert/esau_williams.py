@@ -122,107 +122,57 @@ def esau_williams():
 
     subtrees = [[x] for x in range(1, graph.number_of_nodes())]
     last_cost = calc_cost(graph)
-    run = True
-    run_counter = 0
-    while run:
-        run_counter += 1
+
+    for vertex_i in range(1, graph.number_of_nodes()):
         trade_offs = []
-
-        for vertex in range(1, len(adjacency_matrix[0])):
-            trade_offs_of_i = []
-
-            subtree_index_of_i = get_subtree_index(subtrees, vertex)
-            subtree_of_i = subtrees[subtree_index_of_i]
-            if len(subtree_of_i) >= max_heliostats:
-                continue
-
-            central_link_of_i = subtree_of_i[0]
-            degree_of_i = graph.degree[vertex]
-            degree_of_central_link = graph.degree[central_link_of_i]
-
-            for vertex_j, cost_i_j in enumerate(adjacency_matrix[vertex]):
-                if vertex_j == 0:
-                    continue
-
-                if vertex_j in subtree_of_i:
-                    continue
-
-                subtree_index_of_j = get_subtree_index(subtrees, vertex_j)
-                subtree_of_j = subtrees[subtree_index_of_j]
-
-                if len(subtree_of_i) + len(subtree_of_j) > max_heliostats:
-                    continue
-
-                edge_cost = cost_i_j
-                central_link_cost = adjacency_matrix[0][central_link_of_i]
-                degree_of_j = graph.degree[vertex_j]
-
-                trade_off_cable = - central_link_cost + edge_cost
-                trade_off_connection = \
-                    - get_connection_type(degree_of_i)[0] \
-                    - get_connection_type(degree_of_j)[0] \
-                    - get_connection_type(degree_of_central_link)[0] \
-                    + get_connection_type(degree_of_i + 1)[0] \
-                    + get_connection_type(degree_of_j + 1)[0] \
-                    + get_connection_type(degree_of_central_link - 1)[0]
-
-                trade_off_current = trade_off_cable + trade_off_connection
-
-                trade_offs_of_i.append((
-                    trade_off_current,
-                    vertex_j,
-                    subtree_index_of_j,
-                ))
-
-            try:
-                trade_off, vertex_j, subtree_index_of_j = min(
-                    trade_offs_of_i)
-            except ValueError:
-                continue
-
-            trade_offs.append((
-                trade_off,
-                vertex,
-                vertex_j,
-                subtree_index_of_i,
-                subtree_index_of_j,
-            ))
-
-        try:
-            best_trade_off, start_vertex, end_vertex, \
-            subtree_index_of_start, subtree_index_of_end = min(trade_offs)
-        except ValueError:
-            break
-
-        if start_vertex == end_vertex:
+        # check if directly connected to center
+        if not graph.has_edge(0, vertex_i):
             continue
 
-        if subtree_index_of_start is None or subtree_index_of_end is None:
-            break
+        vertex_i_subtree_index = get_subtree_index(subtrees, vertex_i)
+        vertex_i_subtree = subtrees[vertex_i_subtree_index]
+        edge_cost_0_i = adjacency_matrix[0][vertex_i]
 
-        central_link_to_remove = subtrees[subtree_index_of_start][0]
+        if len(vertex_i_subtree) >= max_heliostats:
+            continue
 
-        graph.remove_edge(0, central_link_to_remove)
-        graph.add_edge(start_vertex, end_vertex,
-                       weight=adjacency_matrix[start_vertex][
-                           end_vertex])
+        for vertex_j in range(1, graph.number_of_nodes()):
 
-        new_cost = calc_cost(graph)
+            if vertex_j in vertex_i_subtree:
+                # already in same subtree
+                continue
 
-        if new_cost > last_cost:
-            graph.remove_edge(start_vertex, end_vertex)
-            graph.add_edge(0, central_link_to_remove,
-                           weight=adjacency_matrix[0][central_link_to_remove])
-            run = False
-        else:
-            last_cost = new_cost
-            subtrees[subtree_index_of_end] += subtrees[subtree_index_of_start]
-            subtrees.pop(subtree_index_of_start)
+            vertex_j_subtree_index = get_subtree_index(subtrees, vertex_j)
+            vertex_j_subtree = subtrees[vertex_j_subtree_index]
 
-        if run_counter % 50 == 0:
-            print('new cost:', new_cost)
-            draw_graph(graph, run_counter)
-            save_graph(graph, subtrees, run_counter)
+            if len(vertex_i_subtree) + len(vertex_j_subtree) > max_heliostats:
+                # connection vertex j and vertex i would violate the constraint
+                continue
+
+            edge_cost_i_j = adjacency_matrix[vertex_i][vertex_j]
+            degree_j = graph.degree[vertex_j]
+
+            trade_off_cable = - edge_cost_0_i + edge_cost_i_j
+            trade_off_loc = - get_connection_type(degree_j)[0] \
+                            + get_connection_type(degree_j + 1)[0]
+            trade_off_j = trade_off_cable + trade_off_loc
+
+            trade_offs.append((trade_off_j, vertex_j, vertex_j_subtree_index))
+
+        try:
+            trade_off, vertex_j, subtree_index_of_j = min(trade_offs)
+        except ValueError:
+            continue
+
+        if trade_off >= 0:
+            continue
+
+        graph.remove_edge(0, vertex_i)
+        graph.add_edge(vertex_i, vertex_j, weight=adjacency_matrix[vertex_i][
+            vertex_j])
+
+        subtrees[subtree_index_of_j] += subtrees[vertex_i_subtree_index]
+        subtrees.pop(vertex_i_subtree_index)
 
     draw_graph(graph, 'full')
     save_graph(graph, subtrees, 'full')
