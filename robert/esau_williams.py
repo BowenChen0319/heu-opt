@@ -6,6 +6,7 @@ import networkx as nx
 from datetime import datetime
 import sys
 import os
+import random
 
 if len(sys.argv) != 2:
     print('Please provide the cost of cable')
@@ -107,6 +108,17 @@ def draw_graph(graph, counter):
     plt.gcf().texts.remove(t)
 
 
+def custom_min(trade_offs):
+    best_of = 3
+    buffer = []
+    for _ in range(best_of):
+        elem = min(trade_offs)
+        buffer.append(elem)
+        trade_offs.remove(elem)
+
+    return buffer[random.choice(range(best_of))]
+
+
 def esau_williams():
     # Add nodes to Graph
     graph = nx.Graph()
@@ -122,7 +134,11 @@ def esau_williams():
 
     subtrees = [[x] for x in range(1, graph.number_of_nodes())]
 
+    working_vertex = np.array([x for x in range(1, graph.number_of_nodes())])
+    # np.random.shuffle(working_vertex)
+
     for vertex_i in range(graph.number_of_nodes(), 1, -1):
+        working_vertex = np.delete(working_vertex, 0)
         trade_offs = []
         # check if directly connected to center
         if not graph.has_edge(0, vertex_i):
@@ -159,7 +175,9 @@ def esau_williams():
             trade_offs.append((trade_off_j, vertex_j, vertex_j_subtree_index))
 
         try:
-            trade_off, vertex_j, subtree_index_of_j = min(trade_offs)
+            # best_trade_off, _, _ = min(trade_offs)
+            trade_off, vertex_j, subtree_index_of_j = custom_min(trade_offs)
+            # trade_off, vertex_j, subtree_index_of_j = min(trade_offs)
         except ValueError:
             continue
 
