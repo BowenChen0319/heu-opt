@@ -1,0 +1,5 @@
+Img1: EW on all nodes, vertex ganz außen, werden als erste bearbeitet (Gewicht
+54)
+Img2: EW on all nodes, vertex ganz innen, werden als erstes bearbeite
+Img3_a,b,c: EW on all nodex, vertex werden zufällig abgearbeitet
+Img4: Problem with EW on all nodes
