@@ -1,5 +1,17 @@
 Img1: EW on all nodes, vertex ganz außen, werden als erste bearbeitet (Gewicht
 54)
+    -> Runtime: 0:00:12.424119, 0:00:13.365338, 0:00:12.610441
 Img2: EW on all nodes, vertex ganz innen, werden als erstes bearbeite
+    -> Runtime: 0:00:10.705071, 0:00:10.726984, 0:00:11.206331
 Img3_a,b,c: EW on all nodex, vertex werden zufällig abgearbeitet
+    -> Runtime
 Img4: Problem with EW on all nodes
+Img5_a..: EW on all nodes, vertex werden zufällig abgearbeitet, zufällig auswahl
+ einer der drei besten verbesserung
+    -> Runtime 0:00:11.058342, 0:00:10.733521, 0:00:10.684828
+Img6a..: EW on all nodes, vertex ganz außen, werden als erste bearbeitet, zufällig auswahl
+ einer der drei besten verbesserung
+    -> Runtime 0:00:12.258314, 0:00:12.293953,
+Img7a..: EW on all nodes, vertex ganz innen, werden als erste bearbeitet,
+ zufällig auswahleiner der drei besten verbesserung
+    -> Runtime 0:00:10.694081, 0:00:11.079055, 0:00:10.440470
